@@ -1,0 +1,39 @@
+\BOOKMARK [1][-]{section.1}{Einleitung}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{RENA Technologies GmbH}{section.1}% 2
+\BOOKMARK [1][-]{section.2}{Aufgabenstellung}{}% 3
+\BOOKMARK [1][-]{section.3}{Konzept}{}% 4
+\BOOKMARK [2][-]{subsection.3.1}{Logging}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.2}{Anwendung}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.3}{Datenspeicherung}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.4}{Projektplan}{section.3}% 8
+\BOOKMARK [1][-]{section.4}{Recherche}{}% 9
+\BOOKMARK [2][-]{subsection.4.1}{.NET}{section.4}% 10
+\BOOKMARK [2][-]{subsection.4.2}{WPF}{section.4}% 11
+\BOOKMARK [2][-]{subsection.4.3}{C\043}{section.4}% 12
+\BOOKMARK [2][-]{subsection.4.4}{Telegramme}{section.4}% 13
+\BOOKMARK [2][-]{subsection.4.5}{TCP}{section.4}% 14
+\BOOKMARK [2][-]{subsection.4.6}{PostgreSQL}{section.4}% 15
+\BOOKMARK [2][-]{subsection.4.7}{Kommunikationsbibliothek \(.NET \040SIEMENS-SPS\)}{section.4}% 16
+\BOOKMARK [1][-]{section.5}{TCP-Logging}{}% 17
+\BOOKMARK [2][-]{subsection.5.1}{TCP-Kommunikation}{section.5}% 18
+\BOOKMARK [2][-]{subsection.5.2}{Datenkonvertierung}{section.5}% 19
+\BOOKMARK [2][-]{subsection.5.3}{SQL-Kommunikation}{section.5}% 20
+\BOOKMARK [1][-]{section.6}{RENA CSV Service}{}% 21
+\BOOKMARK [2][-]{subsection.6.1}{SQL-Kommunikation}{section.6}% 22
+\BOOKMARK [2][-]{subsection.6.2}{Auswertung}{section.6}% 23
+\BOOKMARK [2][-]{subsection.6.3}{CSV-Datei}{section.6}% 24
+\BOOKMARK [1][-]{section.7}{SPS-Logging}{}% 25
+\BOOKMARK [2][-]{subsection.7.1}{SPS-Zugriff}{section.7}% 26
+\BOOKMARK [3][-]{subsubsection.7.1.1}{AGLink Kommunikationsbibliothek}{subsection.7.1}% 27
+\BOOKMARK [3][-]{subsubsection.7.1.2}{SIEMENS-Variablen}{subsection.7.1}% 28
+\BOOKMARK [2][-]{subsection.7.2}{SQL-Kommunikation}{section.7}% 29
+\BOOKMARK [2][-]{subsection.7.3}{HMI-Kommunikation}{section.7}% 30
+\BOOKMARK [3][-]{subsubsection.7.3.1}{Visualisierung zu Service}{subsection.7.3}% 31
+\BOOKMARK [3][-]{subsubsection.7.3.2}{Service zu Visualisierung}{subsection.7.3}% 32
+\BOOKMARK [1][-]{section.8}{Ausblick}{}% 33
+\BOOKMARK [2][-]{subsection.8.1}{TCP-Logging}{section.8}% 34
+\BOOKMARK [2][-]{subsection.8.2}{SPS-Logging}{section.8}% 35
+\BOOKMARK [1][-]{section.9}{Literatur}{}% 36
+\BOOKMARK [1][-]{section.10}{Anhang}{}% 37
+\BOOKMARK [2][-]{subsection.10.1}{RENA CSV Report als CSV-Datei}{section.10}% 38
+\BOOKMARK [2][-]{subsection.10.2}{RENA CSV Report als Excel-Datei}{section.10}% 39

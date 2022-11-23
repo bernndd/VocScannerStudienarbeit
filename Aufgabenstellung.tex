@@ -1,0 +1,83 @@
+Die RENA Maschinen generieren während der Produktion eine Vielzahl von Daten, welche für den Kunden, aber auch für den RENA Service wichtig sind. Hierzu wurde das Projekt \glqq RENA Data Logging\grqq{} ins Leben gerufen, welches die bisherige Logging-Software ersetzten und verbessern soll.
+\ \\
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/Feldbus-Pyramide.png}
+ \caption[Automatisierungspyramide]{Automatisierungspyramide \cite{automatisierungspyramide}}
+ \label{fig:automatisierungspyramide}
+\end{figure}
+\ \\
+Die Automatisierungspyramide (\autoref{fig:automatisierungspyramide}) stellt die verschiedenen Ebenen der Automatisierung dar. Auf Ebene 0 ist die Fertigung an sich dargestellt. In der Feldebene ist die Sensorik und Aktorik eingeordnet und auf der Steuerungsebene die SPS. Diese steuert den Fertigungsprozess. Die 2. Stufe ist die Leitebene, diese leitet den Prozess eines einzelnen Fertigungsprozesses. Die Betriebsleitebene leitet schon die gesamte Fertigung. Die höchste Stufe der Automatisierungspyramide ist die Unternehmensebene, hier wird die Anbindung an das ERP-System  eingeordnet. 
+\ \\
+Das Datenlogging kann zwischen Level 2 und 3 eingeordnet werden, da Daten zum Prozess gespeichert werden, diese aber auch für die gesamte Fertigung interessant sein könnten. Daher lag die Verantwortung dieses Projekts bei RENA bei dem Software-Team „Visualisierung“, welches für die Level 2 und 3 zuständig sind.
+\ \\
+\ \\
+Bisher wurden die Daten mithilfe der eigenen Visualisierungs-Software und eines eingekauften Tools namens \glqq ACCON-EasyLog\grqq{}  von der Firma DELTA LOGIC \cite{deltalogic} erfasst. Beides sollen nun überarbeitet oder ersetzt werden.
+\ \\
+Für die Aufgabenstellungen wurden Lasten- / Pflichtenhefte (\autoref{fig:lasten1} und \autoref{fig:lasten2} sowie \autoref{fig:lasten3}) angelegt. Durch die stichpunktartige Aufführung der Lasten kann man die Gesamtaufgabe gut in einzelne Kleinaufgaben aufteilen. Dadurch wird der Arbeitsablauf besser strukturiert. 
+\ \\
+Im nachfolgenden werden die Aufgabenstellungen für die verschiedenen Tools aufgeführt.
+\begin{figure}
+\centering
+ \includegraphics[height=\textheight-10pt]{Bilder/Lasten/Logging.png}
+ \caption[Lasten-/Pflichtenheft für \glqq TCP Logging\grqq{}]{Lasten-/Pflichtenheft für \glqq TCP Logging\grqq{}}
+ \label{fig:lasten1}
+\end{figure}
+\begin{figure}
+\centering
+ \includegraphics[height=\textheight-10pt]{Bilder/Lasten/Report.png}
+ \caption[Lasten-/Pflichtenheft für \glqq CSV Service\grqq{}]{Lasten-/Pflichtenheft für \glqq CSV Service\grqq{}}
+ \label{fig:lasten2}
+\end{figure}
+\begin{figure}
+\centering
+ \includegraphics[height=\textheight-10pt]{Bilder/Lasten/SPS.png}
+ \caption[Lasten-/Pflichtenheft für \glqq SPS-Logging\grqq{}]{Lasten-/Pflichtenheft für \glqq SPS-logging\grqq{}}
+ \label{fig:lasten3}
+\end{figure}
+\ \\
+\textbf{\nameref{TCP-Logging}}
+\ \\
+Das TCP-Logging wird bisher von der RENA-Visualisierungs-Software der Sondermaschinen\footnote[1]{Einzelmaschine Maschine welche für spezielle Produkte- und Produktionsanforderungen entwickelt und aufgebaut wird.}  übernommen. Da Serienmaschinen nicht mit dieser Visualisierungs-Software ausgestattet sind, verfügen sie bisher auch über kein TCP-Logging. Des Weiteren kann die Software auch ausgeschaltet werden, was zu einem Datenverlust führen würde. 
+\ \\
+Aktuell sind TCP-Telegramme definiert, welche die \ac{sps} an die Visualisierungs-Software sendet. Diese Telegramme müssen auch im neuen Daten-Logging unterstützt werden. 
+Da das bisherige Logging als ein WPF-Projekt entwickelt wurde, können Teile des Codes übernommen werden. 
+\ \\
+Der erste Schritt ist das Ausgliedern des Loggings aus der Visualisierungs-Software. Dies beinhaltet auch Verbesserungen und Anpassungen des aktuellen Codes. Die aktuelle Software erhält Telegramme per TCP-Kommunikation, welche dann in der Software ausgewertet und in die PostgreSQL-Datenbank gespeichert werden.
+\ \\
+Da die Sondermaschine \glqq RENA EPM 2 100F\grqq{} (\autoref{fig:EPM100F}), mit dem TCP-Logging-Service ausgestattet wird, müssen noch zusätzliche, maschinenspezifische Telegramme integriert werden.
+\ \\
+Beim Starten des TCP-Logging soll überprüft werden, ob die benötigten Tabellen existieren. Sollte dies nicht der Fall sein, so sollen diese automatisch erstellt werden. Diese Funktion soll über ein Ini-File aus- bzw. einschaltbar gemacht werden.
+\ \\
+\ \\
+\textbf{\nameref{CSV-Report}}
+\ \\
+Als zusätzliches \glqq Kleinprojekt\grqq{} wurde das \glqq RENA CSV Report\grqq{}-Tool während der Entwicklung des TCP-Logging hinzugefügt. Da die \glqq RENA EPM 2 100F\grqq{} (\autoref{fig:EPM100F}) nicht über eine Visualisierungs-Software verfügt, sondern nur ein kleines Visualisierungs-Panel benutzt, können auch keine Reporte in der Visualisierung erstellt werden. Daher wird ein unabhängiges Tool erstellt, welches einen Report über einen gesamten Produktionsprozess erstellt.
+\ \\
+Die Reporte sollen als CSV-File auf dem PC abgelegt werden. Diese Reporte können in den nächsten 30 Tagen per USB-Stick \glqq heruntergeladen\grqq{} werden. Danach sollen die Reporte gelöscht werden, um eine volle Festplatte zu vermeiden. 
+\ \\
+Die \glqq RENA EPM 2 100F\grqq{} kann verschiedene Rezepte mit maximal 20 Rezeptschritten speichern. Jeder Datensatz soll einem Rezeptschritt zuordenbar sein. Durch das Datum und die Uhrzeit können auch Verläufe von Prozesswerten ermittelt werden.
+\ \\ 
+Ein Report soll direkt nach dem Beenden den Prozesses erstellt werden.
+
+%RENA Maschine
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/EPM/EPM100F.jpg}
+ \caption[RENA-Maschine \glqq RENA EPM 2 100F\grqq{}]{RENA-Maschine \glqq RENA EPM 2 100F\grqq{}}
+ \label{fig:EPM100F}
+\end{figure}
+\ \\
+\textbf{\nameref{SPS-Logging}}
+\ \\
+Das SPS-Logging wird bisher von einem externen Tool \glqq Accon-EasyLog\grqq{} durchgeführt. Dieses Tool soll nun durch ein selbst entwickeltes Programm ersetzt werden, da das Tool aufwändig zu konfigurieren ist. Zusätzlich fallen für jede mit SPS-Logging ausgestattete Maschine bisher Runtime-Lizenzkosten an. 
+\ \\
+Durch die Ersetzung des Tools durch ein eigenes Programm erhofft sich RENA, die Entwicklungszeiten und Maschinenkosten senken zu können.
+\ \\
+Im ersten Schritt soll eine Kommunikationsbibliothek  gefunden werden, welche in das .NET-Framework integrierbar ist. Diese Bibliothek muss darüber hinaus symbolisch auf die Variablen in der SIEMENS-\ac{sps} zugreifen können.
+\ \\
+In eine \glqq Machine-Config\grqq{}-Datenbank werden die Informationen für das Programm zur Verfügung gestellt. Diese müssen eingelesen und verarbeitet werden. Diese Maschinenkonfiguration enthält für das Programm auch unwichtige Angaben, diese müssen herausgefiltert werden.
+\ \\
+Um das Programm steuern zu können soll ein Kommunikationskanal per TCP/IP integriert werden, welcher beispielsweise ein Neuladen der Log-Konfigurations-Daten veranlassen kann. Darüber hinaus soll auch ein ausgehender Kanal integriert werden. Über diesen Kanal könnten Alarm-Meldungen an andere Programme weitergegeben werden.
+\ \\
+Als letzter Schritt steht das Testen an. Hierfür kann ein Teststand, welcher für Entwicklungszwecke die Software einer RENA-Maschine simulieren kann, genutzt werden. Dort soll das Programm installiert werden und die geloggten Daten analysiert werden.

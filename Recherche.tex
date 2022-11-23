@@ -1,0 +1,84 @@
+\subsection{.NET}
+.NET \cite{microsoft.net} ist eine Sammlung verschiedener Software-Plattformen, welche zur Entwicklung und Ausführung von Programmen dient. Entwickelt und herausgegeben wurde .NET von Microsoft. Die Plattform wurde 2002 veröffentlicht und ist seit 2014 eine Open-Source-Software. Mit dem .NET-Framework lassen sich Webseiten, Dienste, Desktop-Anwendungen und vieles mehr entwickeln, allerdings nur für Windows. Mit .NET-Core, welches 2016 veröffentlicht wurde, wird der Code nativ auf jedem kompatiblen Betriebssystem ausgeführt. Dadurch schafft man eine vom Betriebssystem unabhängige Plattform. Als Hauptsprachen werden von .NET C\#, Visual Basic und F\# unterstützt, allerdings sind auch weitere Sprachen wie zum Beispiel Python, JavaScript oder C++ nutzbar. Bei RENA wie im .NET Bereich auf C\# gesetzt.
+\ \\
+Das Buch \glqq Die .NET-Technologie\grqq{} \cite{.Net-Buch} liefert ein Grundverständnis der .NET-Technologie.
+
+\subsection{WPF}
+\ac{wpf} \cite{wpf} ist eine Benutzeroberfläche-Framework, mit welcher beispielsweise Desktop-Anwendungen entwickelt werden können. \ac{wpf} gehört zu .NET und unterstützt viele Anwendungsentwicklungsfeatures. Wie zum Beispiel Ressourcen, Steuerelemente, Grafik und Layout. Bei RENA wird \ac{wpf} zur Erweiterung der Visualisierungssoftware WinCC von SIEMENS verwendet. Durch \ac{wpf} können spezielle Werkzeuge und Darstellungen entwickelt werden, welche genau auf den Kunden abgestimmt werden können. Bei RENA werden die WPFs beispielsweise für die Navigation eingesetzt (\autoref{fig:nav}). Eine solche Navigation wäre ausschließlich mit WinCC Funktionen sehr schwer umsetzbar und extrem unflexibel. Darüber hinaus sind die WPFs flexibler einsetzbar als die WinCC-Komponenten.
+
+\begin{figure}
+\centering
+ \includegraphics[scale=0.7]{Bilder/Sonstiges/Navigation RENA.png}
+ \caption[Navigations-WPF einer RENA-Maschine]{Navigations-WPF einer RENA-Maschine}
+ \label{fig:nav}
+\end{figure}
+
+\subsection{C\#}
+\glqq  C\# (Aussprache „C Sharp“) ist eine moderne, objektorientierte und typsichere Programmiersprache. C\# ermöglicht Entwicklern das Erstellen zahlreicher sicherer und robuster Anwendungen, die in .NET ausgeführt werden.\grqq{} \cite{csharp} so Microsoft auf ihrer Webseite. C\# wird in eine Zwischensprache kompiliert, welche anschließend auf einem virtuellen System (Common Laguage Runtime) ausgeführt wird (ähnlich wie Java). Durch die vielen Bibliotheken (Libraries), welche meist kostenlos im NuGet-Manager installierbar sind, werden Programme häufig einfacher und sicherer, da der Code der Bibliotheken meist getestet wurde. Der NuGet-Manager enthält über 90.000 Packages und ist voll integriert in das Visual Studio von Microsoft. 
+\ \\
+Das C\# Kompendium \cite{CSharp-Buch} wird als Nachschlagewerk verwendet, durch zahlreiche Codebeispiele und Beschreibungen werden auch komplexere Aufbauten verständlich.
+\subsection{Telegramme}
+Die bestehenden Telegramme können teilweise aus dem Quellcode des bestehenden Data-Loggings sowie auch von der \ac{sps}-Software (\autoref{fig:fcs}) entnommen werden. Die Funktionen (bspw. \glqq FC\textunderscore Event\textunderscore Batch\textunderscore Log\grqq{}) generieren den zu sendenden String, welcher mit dem Funktionsbaustein \glqq FB\textunderscore TCP\textunderscore Send\textunderscore Log\grqq{} gesendet wird. Für folgende Projekte oder eventuelle Erweiterungen wurde ein Dokument (\autoref{fig:telegramme}) mit der Beschreibung aller Telegramme erstellt.
+\ \\
+Beispiele für Telegramme ist das \glqq Consumption\grqq{}-Logging oder das Prozessdaten-Logging.
+\ \\
+Um Verbrauchsdaten zu erfassen, wurde das \glqq Consumption\grqq{}-Logging-Telegramm (\autoref{fig:Consumption}) eingeführt. Des Weiteren wurden neue Telegramme speziell für die \glqq RENA EPM 2\grqq{} hinzugefügt (Unter anderem das ProcessValue-Telegramm (\autoref{fig:ProcessValue}) welches keine feste Anzahl an Daten überträgt). Es ist erweiterbar um jeweils eine zugehörige Wert-ID und den Wert selbst. Dieses Telegramm kann natürlich auch in Zukunft von anderen Maschinen verwendet werden, nicht nur von der \glqq RENA EPM 2\grqq{}.
+
+\begin{figure}
+\centering
+ \includegraphics[scale=0.5]{Bilder/Sonstiges/FCsLogging.png}
+ \caption[Funktionen und Funktions-Baustein aus dem TIA-Portal]{Funktionen und Funktions-Baustein aus dem TIA-Portal, welche zum Loggen verwendet werden.}
+ \label{fig:fcs}
+\end{figure}
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/Consumption.png}
+ \caption[Telegramm des Consumption-Loggings]{Telegramm des Consumption-Loggings}
+ \label{fig:Consumption}
+\end{figure}
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/ProcessValue.png}
+ \caption[Telegramm des Process-Value-Loggings]{Telegramm des Process-Value-Loggings}
+ \label{fig:ProcessValue}
+\end{figure}
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/TCP.jpg}
+ \caption[Verbindungsaufbau einer TCP-Kommunikation]{Verbindungsaufbau einer TCP-Kommunikation \cite{tcp-verbindungsaufbau}}
+ \label{fig:tcp}
+\end{figure}
+
+%TODO Mittig
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/Telegramme.png}
+ \caption[Alle unterstützten Telegramme und Datenbank-Tabellen]{Alle unterstützten Telegramme und Datenbank-Tabellen}
+ \label{fig:telegramme}
+\end{figure}
+
+
+
+\subsection{TCP}
+TCP steht für \textit{Transmission Control Protocol} und ist ein Netzwerkprotokoll. Eine Verbindung besteht aus zwei Endpunkten, sogenannten Sockets, welche in beide Richtungen kommunizieren können. Der Verbindungsaufbau (\autoref{fig:tcp}) ist ebenfalls fest definiert, ebenso wie auch der Datenaustausch. TCP ist ein sicheres Übertragungsprotokoll, da auf jedes empfangene Paket mit einem Bestätigungs-Paket (Acknowledge-Paket) geantwortet wird. Sollte der Sender keine Antwort erhalten, so wird das Paket erneut gesendet bzw. nach mehreren Fehlversuchen abgebrochen. Die IETF (Internet Engineering Task Force) hat die TCP-Kommunikation in dem Standarddokument RFC793 \cite{tcp-rfc} definiert. Die IETF ist ein Arbeitsgruppe einer internationalen Community; welche Standardbetriebsprotokolle definiert, zu diesen Protokollen zählt auch das TCP-Protokoll.
+\ \\
+
+\subsection{PostgreSQL}
+Als Datenbank wurde beim bestehenden Logging eine PostgreSQL-Datenbank \cite{postgresql} verwendet, welche auch wieder verwendet wird. PostgreSQL ist eine objektrelationale Datenbank, welche das Bindeglied zwischen relationalen und objektorientierten Datenbanken darstellt. Die Datenbank erschien schon 1996 und wird seit 1997 von einer Open-Source-Community weiterentwickelt. PostgreSQL lehnt sich stark an den SQL-Standard an, allerdings gibt es auch ein paar PostgreSQL-spezifische Funktionen.
+\ \\
+Durch die bestehende Datenbank konnten die Tabellen, welche für das TCP-Logging verwendet werden, übernommen werden. Für das IO-Logging wird ebenfalls der Tabellenentwurf der bereits bestehenden Tabellen übernommen, damit die bestehende Auswertung nicht angepasst werden muss.
+
+\subsection{Kommunikationsbibliothek (.NET $\leftrightarrow$ SIEMENS-SPS)}
+Für die Kommunikation zwischen dem Service und der SIEMENS-\ac{sps} wird eine Kommunikationsbibliothek benötigt. Bisher wird bei RENA die AGLink-Bibliothek von DELTA LOGIC verwendet, allerdings kann diese Version kein symbolischen Zugriff auf Variablen ausführen. Der symbolische Zugriff wird benötigt, da bei optimierten Datenbausteinen\footnote[1]{Speicher und Zugriffs optimierte Bausteine, welche für die Datenspeicherung zuständig sind auf } von SIEMENS nicht wie bisher über eine direkte Adressierung zugegriffen werden kann.
+\ \\
+Nach mehreren Anfragen bei verschiedenen Software-Herstellern wurde festgestellt, dass nur DELTA LOGIC mit einer anderen Ausführung der AGLink-Bibliothek den symbolischen Zugriff durchführen kann. Daher wird diese Version eingesetzt. Die mitgelieferte API-Dokumentation (\autoref{fig:api_guide})  enthält Informationen zu den einzelnen Funktionen und auch Beispiel-Codeausschnitte. 
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/SPS/API_Guide.png}
+ \caption[API-Guide für AGLink Bibliothek]{API-Guide für AGLink Bibliothek}
+ \label{fig:api_guide}
+\end{figure}

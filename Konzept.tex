@@ -1,0 +1,43 @@
+\subsection{Logging}
+SIEMENS \ac{sps}en bieten die Möglichkeit, mit vorbereiteten Funktionsbausteinen Daten in eine CSV-Datei zu loggen. Diese CSV-Datei wird dann auf der Speicherkarte der \ac{sps} gespeichert und kann über einen Webserver, welcher auf der \ac{sps} läuft, heruntergeladen werden. Dies belastet den Speicherplatz auf der Speicherkarte und die CSV-Dateien müssten händisch oder mit einem extra Tool von der Speicherkarte auf einen PC heruntergeladen werden. Daher hat sich RENA dafür entschieden, das Logging auf einen PC auszulagern und nicht auf der \ac{sps} durchzuführen. Hinzu kommt die Datenmenge, welche in den CSV-Dateien gespeichert werden müsste. Die Vorgabe für den maximalen Speicherbedarf des Loggings beträgt etwa 50 Gigabyte. Eine solch große Speicherkarte bietet SIEMENS nicht an.
+
+\subsection{Anwendung}
+Bei RENA werden in den meisten Maschinen Industrie-PCs eingesetzt, welche mit Windows 10 als Betriebssystem ausgestattet sind. Auf diesen PCs soll die Anwendungen für das Datenlogging ausgeführt werden. Aktuell wird beispielsweise die Visualisierungs-Software auf diesen PCs ausgeführt. Durch diese Vorgabe steht das Betriebssystem, für welches die Anwendungen entwickelt werden, fest.
+\ \\Windows kann unter anderem Desktop-Anwendungen, Services oder Aufgaben (engl. \textit{Tasks}) ausführen. 
+\ \\Eine Desktop-Anwendung kann entweder vom Benutzer nach der Anmeldung gestartet werden oder die Anwendung kann direkt nach der Anmeldung automatisch gestartet werden. In diesem Fall werden Daten nur geloggt, wenn ein Benutzer am PC angemeldet ist, was zu einem Datenverlust führen kann. Darüber hinaus können Desktop-Anwendungen vom Benutzer geschlossen bzw. beendet werden. Dies ist nicht erwünscht und sollte nur von einem befähigten Benutzer durchgeführt werden (einem Administrator). 
+\ \\Eine Aufgabe kann im Windows-Aufgabenplaner angelegt werden. Die Aufgabe führt ein Skript oder eine EXE-Datei aus, auch wenn kein Benutzer angemeldet ist. Dadurch wäre das Problem des Datenverlustes, welches Desktop-Anwendungen hätten, gelöst. Allerdings kann eine Aufgabe höchstens einmal pro Minute aktiviert werden, was für Logging-Tools zu langsam ist. 
+\ \\Ein Windows-Service schließlich kann automatisch gestartet werden, ohne dass sich ein Benutzer anmeldet. Außerdem läuft ein Windows-Service dauerhaft im Hintergrund und kann nur durch einen Administrator gestoppt bzw. beendet werden. 
+\ \\Weiter soll das Datenlogging nicht an ein spezielles Visualisierungssystem gebunden sein, um auch in Zukunft entsprechenden Kundenwünschen, ein anderes Visualisierungssystem einzusetzen, gerecht zu werden.
+\ \\Diese Punkte führten zu der Entscheidung, dass die Anwendungen als Windows-Service entwickelt werden. 
+\ \\Der Vorschlag der Entwicklungsabteilung, die Anwendungen im .NET-Framework mit C\# zu entwickeln, wurde umgesetzt. C\# ist eine typsichere, objektorientierte Programmiersprache, welche komplett in das .NET-Framework integriert ist. 
+\ \\Allerdings könnten auch andere Programmiersprachen verwendet werden, beispielsweise Python. Mit dieser kann auch ein  Windows-Service mit den entsprechenden Bibliotheken entwickelt werden. Allerdings ist dies bei RENA eher eine selten eingesetzte Programmiersprache.
+
+\subsection{Datenspeicherung}
+Um die Logging-Daten zu speichern, gibt es mehrere Möglichkeiten:
+\ \\Zur Speicherung der Daten wird wie bisher eine Datenbank gewählt, da diese den Vorteil bietet, eine große Anzahl von Datensätzen performant zu lesen, zu schreiben und zu verarbeiten. Des Weiteren ist der Mehrbenutzer-Betrieb von Vorteil, da dadurch das Logging unabhängig von der Auswertung auf die Daten zugreifen kann. Würde man die Daten in Dateien speichern, wäre dies nicht ohne einen Mehraufwand möglich. 
+\ \\Bisher wurde eine PostgreSQL-Datenbank verwendet, diese Datenbank ist eine objektrelationale Datenbank. Es ist SQL-fähig und es gibt bereits Bibliotheken, mit welchen die Daten aus einem C\#-Programm in die Datenbank sicher und schnell übertragen werden können. Des Weiteren können Daten flexibel repräsentiert werden und eine nachträgliche Veränderung ist einfach umzusetzen. Auch die erhöhte Übersichtlichkeit der Daten und der Struktur, im Gegensatz zu netzartigen oder hierarchischen Datenbanken, ist ein Vorteil der objektrelationalen Datenbanken.
+\ \\Die Entscheidung für eine PostgreSQL-Datenbank wurde aus Kosten-, Lizenz-, Support und Performancegründen gewählt. Andere Datenbanksysteme wie z.B. mySQL oder Microsoft SQL kosten Lizenzgebühren, wenn man sie kommerziell nutzt. Die Visualisierungs-Software WinCC benutzt eine Microsoft SQL-Datenbank, um interne Daten zu speichern. Daher entstand die Idee, diese auch für das Datenlogging der RENA zu verwenden. Dies wäre allerdings nur möglich, wenn pro Maschine eine Lizenz von Microsoft gekauft wird. Um die Stabilität des bestehenden Visualisierungssystems weiter gewährleisten zu können und die Produktionskosten nicht zu erhöhen, wurde diese Idee nicht umgesetzt. Darüber hinaus hat PostgreSQL eine lebendige Community, welche das Datenbanksystem dauerhaft weiterentwickelt. Ebenfalls ist die PostgreSQL-Schnittstelle in AcconEasy-Log integriert, auch dies war ein weiterer Grund für PostgreSQL. 
+
+\subsection{Projektplan}
+Bevor mit der Umsetzung des Projekts begonnen wird, wird zunächst für jede Teilaufgabe ein Projektplan (\autoref{fig:projektTCP}, \autoref{fig:projektCSV} und \autoref{fig:projektSPS}) erstellt. Vom Projektplan kann immer der aktuelle Projektstand abgelesen werden. Bei RENA wird für jedes Projekt ein Projektplan vom Projektmanagement erstellt. Für kleinere Software-Projekte werden die Projektpläne von den Entwicklern selbst erstellt.
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/Projektplan TCP.png}
+ \caption[Projektplan TCP-Logging]{Projektplan TCP-Logging}
+ \label{fig:projektTCP}
+\end{figure}
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/Projektplan CSV.png}
+ \caption[Projektplan CSV-Reports]{Projektplan CSV-Reports}
+ \label{fig:projektCSV}
+\end{figure}
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/Projektplan SPS.png}
+ \caption[Projektplan SPS-Logging]{Projektplan SPS-Logging}
+ \label{fig:projektSPS}
+\end{figure}

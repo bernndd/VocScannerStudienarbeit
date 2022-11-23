@@ -1,0 +1,49 @@
+\subsection{SQL-Kommunikation} 
+Ebenfalls wie bei dem TCP-Logging werden auch bei dem CSV-Report die Klassen \texttt{Npgsql} und \texttt{Dapper} verwendet. Allerdings wird zusätzlich eine Trigger-Funktion auf der Datenbank erstellt (\autoref{lst:TriggerFunction}).
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Create-Script für die Trigger-Funktion (SQL)},language={SQL},label={lst:TriggerFunction}] {Code/TriggerFunction.sql}
+\ \\
+\end{minipage}
+Diese Trigger-Funktion sendet eine Benachrichtigung auf dem \glqq productionend\grqq{}-Kanal mit der Information, wie der Prozess beendet wurde. Diese Funktion sendet nur bei den Modul-Aktionen \textit{Prozess gestartet}, \textit{Prozess beendet} oder \textit{Prozess abgebrochen} eine Nachricht. Bei allen anderen Änderungen in der Datenbank wird keine Benachrichtigung gesendet. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Script für die Zuweisung der Trigger-Funktion zur Tabelle (SQL)},language={SQL},label={lst:CreateTrigger}] {Code/CreateTrigger.sql}
+\ \\
+\end{minipage}
+Diese Funktion wird über ein SQL-Skript (\autoref{lst:CreateTrigger}) einer Tabelle zugewiesen. Hier wird die Tabelle \glqq modulelogging\grqq{} (Zeile 5) verwendet.
+\subsection{Auswertung}
+Nachdem die Benachrichtigung empfangen, wird die Funktion \texttt{CreateCSVReport()} (\autoref{lst:CreateCSVReport}) aufgerufen. Diese sucht ein Start- und Enddatum in den Datensätzen. Sollte beides gefunden werden (keine Maximalwerte), so wird eine CSV-Datei erstellt und Daten geschrieben. Nachdem alle Daten geschrieben wurden, wird das Start-Datum des Reports gespeichert und in das Ini-File geschrieben, um doppelte Reports zu vermeiden. Daraufhin wird noch überprüft, ob ein weiterer Report erstellt werden kann.
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Funktion CreateCSVReport, welche die Reports erstellt (C\#)},label={lst:CreateCSVReport}] {Code/CreateCSVReport.cs}
+\ \\
+\end{minipage}
+Die Prozessschritt-Zeiträume werden über die Prozessschritt-Start-Datensätze erfasst. Anschließend werden alle Daten, welche im Zeitraum vom Prozessschritt-Start bis zum nächsten Prozessschritt-Start erfasst wurden, in den CSV-Report geschrieben (\autoref{lst:AllProcessSteps}).
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Funktion zum schreiben aller Prozess-Schritt-Daten (C\#)},label={lst:AllProcessSteps}] {Code/AllProcessSteps.cs}
+\ \\
+\end{minipage}
+\ \\
+\subsection{CSV-Datei}
+Eine CSV-Datei ist eine Textdatei, welche zur Speicherung oder zum Austausch strukturierter Daten verwendet wird. CSV-Dateien werden meist für Tabellen verwendet, wobei ein Trennzeichen verwendet wird; im Fall des CSV-Reports ist es das Semikolon \glqq ;\grqq{}. In der ersten Zeile kann der Spaltennamen gespeichert werden. CSV-Dateien können in verschiedene Programme (z.B. Excel) importiert werden. Mit der Filter-Funktion von Excel können die Daten dann besser ausgewertet werden. Selbstverständlich kann der Kunde die Daten auch in sein eigenes Auswertungssystem einlesen.
+\ \\
+Für das Erstellen, Bearbeiten und Überprüfen einer Datei wird die Klasse \texttt{System.IO.File} verwendet.
+\ \\
+Jede Dapper-Klasse, welche die EPM-Maschine verwendet, hat eine öffentliche Funktion mit dem Namen \texttt{GetLoggingEventCSVLine}. Diese gibt ein String zurück mit den Angaben für eine Zeile im CSV-Report. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Funktion zum schreiben der Dosage-Daten (C\#)},label={lst:WriteDosageData}] {Code/WriteDosageData.cs}
+\ \\
+\end{minipage}
+Dieser String wird anschließend einem StringBuilder angehängt (\autoref{lst:WriteDosageData}). Die Reports sollen in verschiedenen Sprachen erstellt werden können. Hierzu wird die Klasse \texttt{CultureInfo} verwendet, sie übernimmt die Formatierung der Datumsangaben und Zahlen für die ausgewählte Sprache. Weiterhin werden mittels einer \textit{Multi-Language}-Datei (welches primär von RENA-WPFs verwendet wird) und einer Datenbank für die Maschinenkonfiguration Übersetzungen erzeugt. Mithilfe des Ini-Files wird die Sprache, in welcher der Report erstellt werden soll, festgelegt. Standard ist Englisch und aktuell wird nur Englisch (US) und Deutsch (DE) unterstützt, allerdings können durch einen kleinen Aufwand Sprachen hinzugefügt werden.
+
+
+\ \\
+

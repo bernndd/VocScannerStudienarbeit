@@ -1,0 +1,135 @@
+Der Service wartet auf Daten, welche per TCP übertragen werden. Sobald der Service Daten empfängt, wandelt er diese und speichert die Daten in der PostgreSQL-Datenbank. Der grobe Ablauf ist im Programmablaufplan (\autoref{fig:PAPTCP}) zusehen. 
+\begin{figure}
+\centering
+ \includegraphics[height=\textheight-50pt]{Bilder/PAP/TCPLogging.png}
+ \caption[Programmablaufplan TCP-Logging]{Programmablaufplan TCP-Logging}
+ \label{fig:PAPTCP}
+\end{figure}
+\ \\ 
+Da das TCP-Logging bisher in der Visualisierungs-Software enthalten ist, konnten einige Programmteile übernommen werden. 
+\ \\
+Eingesetzt wird der TCP-Logging-Service bisher hauptsächlich auf Sondermaschinen, allerdings ist eine Ausweitung des Projekts geplant.
+\subsection{TCP-Kommunikation}
+Für die Kommunikation wurde ein \glqq Ethernet-Controller\grqq{} integriert, der vom bestehenden Projekt übernommen und dessen Code nur leicht verändert wurde. Dieser Controller wird als Server verwendet, welcher dauerhaft auf Nachrichten von Clients wartet. Mithilfe eines Sockets kann ein solcher Server realisiert werden. Dieser Socket ist an eine Port-Nummer gebunden, so dass die Transport-Schicht (\autoref{fig:OSI-Layer}) die Anwendungen aufteilen kann. Das OSI-Model beschreibt die verschiedenen Netzwerkschichten nach ISO 7498-1:1994 \cite{iso_osi}. 
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/Osi-Model3.pdf}
+ \caption[OSI-Modell für Netzwerkprotokolle]{OSI-Modell für Netzwerkprotokolle als Schichtenarchitektur \cite{osi-bild}}
+ \label{fig:OSI-Layer}
+\end{figure}
+\ \\
+Die TCP-Kommunikation wird vom bisherigen Daten-Logging übernommen und nur leicht angepasst.
+\ \\
+Die Klasse \texttt{EnternetController} nutzt Sockets von der Klasse \glqq System.Net.Sockets\grqq{}, welche für die Kommunikation zuständig sind.
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Inititalisierung des Sockets (C\#)},label={lst:InitSocket}] {Code/InitSocket.cs}
+\ \\
+\end{minipage}
+Beim Inititialisieren des Sockets (\autoref{lst:InitSocket}) wird ein neuer Socket erstellt (Zeile 6). Diesem wird als Übergabeparameter die Adressfamilie mitgeteilt, die InterNetwork-Familie ist die IPv4 Adress-Familie. Als Socket-Typ wurde \texttt{Stream} gewählt und das verwendete Protokoll ist TCP, welches ebenfalls als Übergabe-Parameter an den Socket übergeben wird. Anschließend wird in Zeile 7 ein neuer Endpunkt einer Kommunikation angelegt, dieser Endpunkt kann Nachrichten von allen IP-Adressen am definierten Port empfangen. In der Zeile 8 wird die Anzahl der gepufferte Anfragen festgelegt (Backlog).
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Callback auf Socket starten (C\#)},label={lst:WaitAccept}] {Code/WaitAccept.cs}
+\ \\
+\end{minipage}
+Danach wird die Funktion \texttt{WaitAccept()} (\autoref{lst:WaitAccept}) aufgerufen. Diese Funktion definiert eine asynchrone Callback-Methode, welche den eingehenden Verbindungsaufbau annimmt und für die Kommunikation zum anfragenden Socket einen neuen Socket erstellt. Dieser Socket startet dann das Empfangen der Daten. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Callback, wenn TCP-Daten empfangen wurden (C\#)},label={lst:ReceiveCallback}] {Code/ReceiveCallback.cs}
+\ \\
+\end{minipage}
+Die Funktion \texttt{ReceiveCallback()} (\autoref{lst:ReceiveCallback}) empfängt asynchron Daten, welche dem Empfangsbuffer (\texttt{\textunderscore receiveBufferQueue}) angefügt werden (Zeile 15). Zu Beginn jedoch werden die empfangenen Daten asynchron geladen (Zeile 5 bis 8) und es wird überprüft, ob überhaupt Daten empfangen wurden. Sollten Daten empfangen worden sein, werden diese zwischengespeichert (Zeile 13 und 14) und anschließend dem Empfangsbuffer angehängt (Zeile 15). Anschließend wird der Callback erneut gestartet, bis keine Daten mehr empfangen werden, oder der Ethernet-Controller beendet werden soll, dann wird der Socket geschlossen (Zeile 24).
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={RunReceive-Thread (C\#)},label={lst:RunReceive}] {Code/RunReceive.cs}
+\ \\
+\end{minipage}
+In dem Thread \texttt{RunReceive} (\autoref{lst:RunReceive}) werden die Daten in einen Event-Handler übergeben. Der Event-Handler übergibt die Nachricht und die Daten an einen anderen Thread, somit ist das Empfangen und Verarbeiten der Daten in unterschiedliche, von einander unabhängige Threads aufgeteilt. Sie sind unabhängig voneinander. Da immer neue Daten im Puffer stehen können, wird in einer Dauerschleife (Zeile 4) der Buffer überprüft. Zur Entlastung des Systems wird der Thread für eine definierte Zeit (hier 10ms) pausiert (Zeile 18). Solange der Empfangs-Puffer nicht leer ist (Zeile 6), werden die Bytes in einen anderen Puffer kopiert (Zeile 10) und aus dem Receive-Buffer entfernt (Zeile 8). Nachdem der Empfangs-Puffer kopiert und geleert wurde, wird überprüft, ob Daten im Puffer stehen (Zeile 13). Wenn ja, dann werden diese dem Event-Handler \glqq DataReceived\grqq{} hinzugefügt (Zeile 15) und anschließend der Buffer wieder geleert (Zeile 16). 
+
+
+
+
+
+
+\subsection{Datenkonvertierung} 
+Die Daten, welche von der \ac{sps} gesendet werden, sind in der \ac{sps} als \glqq WSTRING\grqq{} abgelegt. Der WSTRING wurde von SIEMENS hinzugefügt, um Unicode-Strings zu unterstützen und ein Zeichen (WCHAR) ist 16 Bit groß. Außerdem reserviert der Compiler von SIEMENS einen Speicherbereich vorgegebener Länge. In den ersten 16 Bits werden für die Kapazität des WSTRINGS verwendet, die nächsten 16 Bits für die tatsächlich verwendete Länge des WSTRINGS, anschließend folgend die Zeichen.
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Daten-Konvertierung Bytes zu String (C\#)},label={lst:Datenkovertierung1}] {Code/HandlePlcLoggingMessageReceived.cs}
+\ \\
+\end{minipage}
+In Zeile 13 und 14 des \autoref{lst:Datenkovertierung1} werden die Kapazität und die verwendete Länge berechnet und anschließend mit 2 multipliziert, da ein WCHAR doppelt so viele Bits hat wie ein Byte. Anschließend werden in Zeile 15 die verwendeten Bytes aus dem Byte-Array herauskopiert, damit diese von der Klasse \texttt{Encoding} in einen String konvertiert werden kann, was in der Zeile 16 ausgeführt wird. In Zeile 18 werden die Daten anschließend mit der Split-Methode am Trennzeichen aufgetrennt.
+Nach der Überprüfung des empfangenen Strings, ob dieser NULL oder ein leerer String ist, wird ein Event dem \texttt{ReceivedDataHandler} (mit dem String-Array der empfangenen Daten) hinzugefügt. 
+Danach wird der Index der bearbeiteten Daten um die maximale Anzahl an Bytes des WSTRINGS und die 4 Längen-Bytes erhöht. Sollten noch weitere empfangene Telegramme im Byte-Array vorhanden sein, werden diese auf dieselbe Weise umgewandelt. 
+Ein Vorteil an C\# ist die Unterstützung von Unicode.
+\ \\
+Die Telegramme sind wie in \autoref{fig:Telegram} gezeigt aufgebaut und als Trennzeichen wird \glqq |\grqq{} verwendet. Die \glqq MessageID\grqq{} wird zur Identifizierung des Telegramms verwendet. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Switch-Case zur Auswahl der Korrekten Konvertierungsfunktion (C\#)},label={lst:Datenkovertierung2}] {Code/SwitchCase.cs}
+\ \\
+\end{minipage}
+Über eine Switch-Case-Anweisung (\autoref{lst:Datenkovertierung2}) wird die zu verwendende Konvertierungsfunktion ausgewählt und anschließend die Daten mit den \glqq Write\grqq{}-Funktionen der SQLCommunication-Klasse in die Datenbank geschrieben. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Konvertierung eines Dosage-Telegramm (C\#)},label={lst:Datenkovertierung3}] {Code/Konvertierung.cs}
+\ \\
+\end{minipage}
+RENA-Maschine müssen Flüssigkeiten dosieren, die Dosierung der Flüssigkeiten ist entscheiden für das Endergebnis der Produkte und wird deshalb mit dem Dosage-Telegramm mitgeloggt. Um dieses Telegramm zu konvertieren, wird die Funktion \texttt{ConvertDosageData\-ToEvent}-Funktion verwendet (\autoref{lst:Datenkovertierung3}), bei den anderen Telegrammen ist der Funktion im Grunde dieselbe. Nach dem Anlegen des Rückgabewerts und des Fehler-Strings werden die eingehenden Daten auf ihre Länge überprüft (Zeile 5); sollten diese nicht der benötigten Länge entsprechen, wird der Fehler-String erweitert (Zeile 34). Die TryParse-Funktion überprüft, ob ein String in den gewünschten Datentyp umgewandelt werden kann und wandelt ihn wenn möglich um. Sollte der String nicht umgewandelt werden können, wird der Fehler-String erweitert. Sollten alle eingehenden Strings konvertiert worden sein ohne Fehlermeldung hervorzurufen, so wird ein neues Objekt erstellt (Zeile 29 und 30). In der Zeile 37 und 38 wird überprüft, ob der Fehlerstring nicht leer ist; sollte dies der Fall sein, wird dieser geloggt.
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/TelegrammBeschreibung.png}
+ \caption[Telegramme-Aufbau]{Telegramme-Aufbau}
+ \label{fig:Telegram}
+\end{figure}
+\ \\
+\subsection{SQL-Kommunikation}
+Beim bestehenden Daten-Logging wird das PostgreSQL-Datenbanksystem \cite{postgresql} verwendet. 
+\ \\
+Mithilfe einer objektrelationaler Abbildung namens Dapper \cite{dapper} können Objekte auf Datenbankrelationen abgebildet werden. Durch diese Abbildung können Daten einfach in die Datenbank eingefügt, gelesen oder verändert werden.
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Abbildungs-Objekt der Consumption-Tabelle (C\#)},label={lst:ConsumptionRow}] {Code/ConsumptionRow.cs}
+\ \\
+\end{minipage}
+In \autoref{lst:ConsumptionRow} wird für die Tabelle \texttt{NameConsumptionLogging} eine Klasse erstellt. In der Zeile 1 wird als \glqq Table\grqq{}-Argument der Tabellenname übergeben. Die Membervariablen müssen dieselben Namen haben wie die Spalten in der Tabelle. In der Zeile 5 wird der Variable \glqq id\grqq{} das Argument Key übergeben, welches diese Variable als Primärschlüssel auszeichnet. Die Daten in der Spalte des Primärschlüssels müssen eindeutig sein, somit ist jede Zeile einzigartig und es gibt keine redundante Daten. 
+\ \\
+Die Tabellen werden entweder händisch erstellt oder man setzt das \glqq SQL\_{}AutoCreate\-Tables\grqq{}-Flag, so dass bei jedem Starten des Service überprüft wird, ob die benötigten Tabellen existieren und erstellt falls diese nicht existiert. Hierzu werden SQL-Scripte verwendet, für das Consumption-Logging beispielsweise das Script, welches in \autoref{lst:SQLCreate} zu sehen ist. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Create-Script für eine Consumption-Tabelle (SQL)},language={SQL},label={lst:SQLCreate}] {Code/ConsumptionTable.sql}
+\ \\
+\end{minipage}
+Im C\#{}-Code wird dieses Script als String abgespeichert. Durch die Platzhalter \glqq {0}\grqq{} kann anschließend der korrekte Tabellenname eingesetzt werden. Hierzu wird in Zeile 3 für die Spalte \glqq id\grqq{} als Default-Wert die Funktion \glqq nextval()\grqq{} aufgerufen mit der der nächste Wert ermittelt wird. Dafür muss in PostgeSQL eine Sequenz angelegt werden. Diese Sequence wird auch mit einem SQL-Script (\autoref{lst:SQLSequence}) erstellt; hier wird ebenfalls wird hier der Tabellenname in den Platzhalter eingefügt.
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Create-Script für eine Sequence (SQL)},language={SQL},label={lst:SQLSequence}] {Code/Sequence.sql}
+\ \\
+\end{minipage}
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Write-Funktion des Consumption-Logging (C\#)},label={lst:SQLInsert}] {Code/InsertData.cs}
+\ \\
+\end{minipage}
+Die Write-Funktionen (\autoref{lst:SQLInsert}), welche aus dem Switch-Case-Konstrukt aufgerufen werden, bauen eine Verbindung zur Datenbank auf und schreiben die Daten mithilfe von \texttt{Dapper} und \texttt{Npgsql} in die PostgreSQL-Datenbank.  In Zeile 7 wird abgefragt, ob Daten existieren oder NULL sind. Sollten Daten existieren, wird eine neue Verbindung aufgebaut (Zeile 9). Nach dem Öffnen der Verbindung (Zeile 14) werden die Daten von einem Event-Objekt noch in ein EventRow-Objekt (Dapper-Klasse) umgewandelt und anschließend eingefügt (Zeile 15). Sollten noch Daten im SQL-Puffer sein, werden diese im Anschluss ebenfalls eingefügt. Danach wird die Verbindung wieder geschlossen. Sollte hierbei etwas schief gehen, werden die Daten im Puffer gespeichert und es wird eine Fehlermeldung geloggt. 
+\ \\
+Der SQL-Puffer ist so ausgelegt, eine bestimmte Anzahl an Daten zwischengespeichert werden, bevor diese verworfen werden. Sollte eine Verbindung hergestellt worden sein und noch Daten im Puffer sind, werden alle Daten aus dem Puffer eingefügt. Dies kann einen kurzen Ausfall der PostgreSQL-Datenbank überbrücken ohne einen Datenverlust zu erleiden.
+
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/Sonstiges/ConsumptionTabelle.png}
+ \caption[Tabelle für das Consumption-Logging]{Tabelle für das Consumption-Logging}
+ \label{fig:ConsumptionTabelle}
+\end{figure}

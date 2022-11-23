@@ -1,0 +1,40 @@
+\babel@toc {ngerman}{}
+\contentsline {section}{\numberline {1}Einleitung}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}RENA Technologies GmbH}{1}{subsection.1.1}%
+\contentsline {section}{\numberline {2}Aufgabenstellung}{2}{section.2}%
+\contentsline {section}{\numberline {3}Konzept}{9}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Logging}{9}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Anwendung}{9}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Datenspeicherung}{10}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Projektplan}{11}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Recherche}{15}{section.4}%
+\contentsline {subsection}{\numberline {4.1}.NET}{15}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}WPF}{15}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}C\#}{15}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Telegramme}{17}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}TCP}{20}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}PostgreSQL}{20}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Kommunikationsbibliothek (.NET $\leftrightarrow $ SIEMENS-SPS)}{20}{subsection.4.7}%
+\contentsline {section}{\numberline {5}TCP-Logging}{22}{section.5}%
+\contentsline {subsection}{\numberline {5.1}TCP-Kommunikation}{22}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Datenkonvertierung}{26}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}SQL-Kommunikation}{31}{subsection.5.3}%
+\contentsline {section}{\numberline {6}RENA CSV Service}{35}{section.6}%
+\contentsline {subsection}{\numberline {6.1}SQL-Kommunikation}{35}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Auswertung}{36}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}CSV-Datei}{38}{subsection.6.3}%
+\contentsline {section}{\numberline {7}SPS-Logging}{40}{section.7}%
+\contentsline {subsection}{\numberline {7.1}SPS-Zugriff}{40}{subsection.7.1}%
+\contentsline {subsubsection}{\numberline {7.1.1}AGLink Kommunikationsbibliothek}{40}{subsubsection.7.1.1}%
+\contentsline {subsubsection}{\numberline {7.1.2}SIEMENS-Variablen}{49}{subsubsection.7.1.2}%
+\contentsline {subsection}{\numberline {7.2}SQL-Kommunikation}{52}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}HMI-Kommunikation}{57}{subsection.7.3}%
+\contentsline {subsubsection}{\numberline {7.3.1}\textit {Visualisierung zu Service}}{57}{subsubsection.7.3.1}%
+\contentsline {subsubsection}{\numberline {7.3.2}\textit {Service zu Visualisierung}}{59}{subsubsection.7.3.2}%
+\contentsline {section}{\numberline {8}Ausblick}{60}{section.8}%
+\contentsline {subsection}{\numberline {8.1}TCP-Logging}{60}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}SPS-Logging}{60}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Literatur}{62}{section.9}%
+\contentsline {section}{\numberline {10}Anhang}{63}{section.10}%
+\contentsline {subsection}{\numberline {10.1}RENA CSV Report als CSV-Datei}{63}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}RENA CSV Report als Excel-Datei}{64}{subsection.10.2}%

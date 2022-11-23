@@ -1,0 +1,17 @@
+Die Logging-Services, TCP-Logging  und SPS-Logging sollen in Zukunft auf vielen Maschinen eingesetzt werden. Durch die einfache Installation können diese auch auf bereits ausgelieferte Maschinen, je nach Kundenwunsch, nachgerüstet werden.
+\subsection{TCP-Logging}
+\ \\
+Das TCP-Logging ist dank der Telegramme flexibel gestaltet und kann durch eine Telegrammerweiterung immer den Maschinen angepasst werden. Durch diese Flexibilität kann der Service bei Sondermaschinen sowie Standardmaschinen verwendet werden. 
+\ \\
+Da eine TCP-Kommunikation eingesetzt wird können, auch andere \ac{sps}en von weiteren Herstellern mit dem Service kommunizieren und Daten mitloggen. Dadurch könnten alle RENA-Maschinen mit diesem Service ausgestattet werden. 
+\subsection{SPS-Logging}
+Aktuell werden nur SIEMENS-\ac{sps}en unterstützt. Eine Ausweitung des Service auf SPSen anderer Hersteller wäre durchaus denkbar. Somit könnten mehr RENA-Maschinen mit dem SPS-Logging-Service ausgestattet werden. 
+\ \\
+Des Weiteren wurde das Tabellenformat in der Datenbank vom bisherigen Tool \glqq Accon EasyLog\grqq{} übernommen, da die Auswertungsfunktionalität der Daten bereits existiert. Allerdings sind die Tabellen nicht platzsparend aufgebaut. Wie in der Beispieltabelle (\autoref{fig:Tabelle}) zu sehen ist, werden immer alle Datenpunkte pro Zeile gespeichert, auch wenn sich nur ein einzelner Wert ändert. Optimieren könnte man den Tabellenaufbau, indem man die Tabelle aufteilt in solche Datenpunkte, welche auf Wertänderung geloggt werden und solche, die in einem bestimmten Intervall geloggt werden. Dadurch werden redundante Daten vermieden und Speicherplatz gespart. 
+
+\begin{figure}
+\centering
+ \includegraphics[height=\textheight-10pt]{Bilder/SPS/LoggingTabelle.png}
+ \caption[Beispiel Tabelle]{Beispiel Tabelle}
+ \label{fig:Tabelle}
+\end{figure}

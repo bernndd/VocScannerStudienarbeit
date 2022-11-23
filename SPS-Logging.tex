@@ -1,0 +1,169 @@
+Das SPS-Logging greift auf Datenpunkte in der \ac{sps} zu; dies soll in einem konfigurierbaren Leseintervall durchgeführt werden. Daher wird ein Timer verwendet. Wenn die Zeit abgelaufen ist, wird wie im Programmablaufplan (\autoref{fig:PAPSPS}) gezeigt vorgegangen. Sollte das vorherige Lesen noch nicht beendet sein, so wird das aktuelle Lesen der Daten übersprungen um die Netzwerkbelastung nicht zu erhöhen. 
+\begin{figure}
+\centering
+ \includegraphics[height=\textheight-50pt]{Bilder/PAP/TimerElapsed.png}
+ \caption[Programmablaufplan SPS-Logging]{Programmablaufplan SPS-Logging}
+ \label{fig:PAPSPS}
+\end{figure}
+
+
+\subsection{SPS-Zugriff}
+
+\subsubsection{AGLink Kommunikationsbibliothek}
+Für den Zugriff auf die SIEMENS-\ac{sps} wird Kommunikationsbibliothek AGLink von DELTA LOGIC verwendet. Diese wird als \ac{dll} ausgeliefert. 
+\ \\
+Die Kommunikationsbibliothek wird in der Klasse \texttt{PLCCommunication} verwendet. Im Konstruktor (\autoref{lst:constPLCCom}) wird die Kommunikationsbibliothek durch einen Funktionsaufruf aktiviert (Zeile 4). Anschließend wird der Parameter-Pfad, in welchem die Kommunikation-Konfigurationsdateien liegen, in die Kommunikationsbibliothek geladen. Die Konfigurationsdateien benötigt die Bibliothek, um Verbindungen zur \ac{sps} aufzubauen. Zur Erstellung dieser Dateien gibt es von DELTA LOGIC ein extra Programm (\autoref{fig:AGconfig}). Da bei RENA die \ac{sps} immer dieselbe IP-Adresse hat, können die erstellten Konfigurationsdateien für jede Maschine übernommen werden. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Inititalisierung der PLC-Communikation (C\#)},label={lst:constPLCCom}] {Code/SPS/ActiveAGLink.cs}
+\ \\
+\end{minipage}
+
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/SPS/AGConfig.png}
+ \caption[ACCON-AGLink Kommunikationskonfigurator]{ACCON-AGLink Kommunikationskonfigurator}
+ \label{fig:AGconfig}
+\end{figure}
+
+\ \\
+Ein Zugriff auf ein Datenpunkt kann bei SIEMENS entweder über eine absolute Adresse oder über einen symbolischen Namen erfolgen. Bei optimierten Bausteinen kann nur noch über den symbolischen Namen zugegriffen werden, ein solchen Zugriff wird \glqq symbolischer Zugriff\grqq{} genannt.
+Um einen symbolischen Zugriff durchführen zu können, muss zuerst das Projekt, welches auf der \ac{sps} gespeichert ist, geladen werden (\autoref{lst:openProject}). Hierzu bietet die Bibliothek drei Möglichkeiten: Laden von einer TIA-Portal-Datei, Laden von einer AGL-Datei oder online laden von der \ac{sps}. Es wurde entschieden, dass das Projekt online geladen werden soll. Dadurch ist das geladene Projekt immer aktuell. Somit muss auch keine TIA-Portal-Datei oder AGL-Datei auf der Maschine abgelegt werden, wodurch das Know-How der RENA geschützt wird. Die \texttt{AGParas}, welche als  Parameter übergeben werden, sind die Parameter (Zeile 5), welche die Bibliothek für die Kommunikation nutzt. Sollte das Projekt nicht geladen werden können, so wird eine Fehlermeldung in die Log-Datei des Service geschrieben (Zeile 13). Diese Log-Datei kann zur Erkennung von Fehlerfällen innerhalb des Service genutzt werden. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Öffnen eines Projekts von der \ac{sps} (C\#)},label={lst:openProject}] {Code/SPS/OpenProject.cs}
+\ \\
+\end{minipage}
+\ \\
+DELTA LOGIC empfiehlt, mehrere Verbindungen zu einer SPS aufzubauen, sollte man viele Daten lesen wollen. Daher wird pro Tabelle eine Verbindung aufgebaut. Für jede Verbindung werden  universelle Parameter benötigt. Mit der Funktion \texttt{GetNewAgParas} (\autoref{lst:newParas}) werden den einzelnen Verbindungen universelle Parameter zugewiesen. Hierzu werden 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Zuweisen der Verbindungsparameter (C\#)},label={lst:newParas}] {Code/SPS/GetNewAGPara.cs}
+\ \\
+\end{minipage}
+
+\ \\
+Nach der Zuweisung der Verbindungsparameter werden die Verbindungen geöffnet (\autoref{lst:connect}). Hierzu wird in Zeile 7 überprüft, ob eine Verbindung bereits aufgebaut wurde. Sollte dies der Fall sein, so muss nichts weiter gemacht werden. Ansonsten wird mit der Funktion \texttt{paras.Agl.Connect()} in Zeile 9 die Verbindung aufgebaut. Als Rückgabewert liefert die Funktion einen Wahrheitswert. Sollte eine Verbindung aufgebaut worden sein, so wird dies in das Log-File des Services geschrieben; des Weiteren wird die ConnectionErrorLogged-Flag zurückgesetzt. Dieses Flag wird benutzt, damit eine Fehlverbindung nur einmal in das Log-File geschrieben wird (Zeile 19). 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Verbindung aufbauen (C\#)},label={lst:connect}] {Code/SPS/Connect.cs}
+\ \\
+\end{minipage}
+\ \\
+Für jede Variable, welche gelesen wird, wird ein Struct erstellt (\autoref{lst:SymbolicRW}). Diese Structs werden in einem Buffer gespeichert. Dieser wird mit der Funktion \texttt{createBuffer()} (\autoref{lst:CreateBuffer}) reserviert. Für den Zugriff auf ein Symbol wird ein Int-Pointer benötigt; dieser wird in der Zeile 13 zugewiesen. Anschließend wird die Buffergröße bestimmt (Zeile 24). Sollte hierbei ein Fehler auftreten, so wird das in das SError-Feld des Symbols gespeichert (Zeile 36). Somit kann beim Auswerten des Symbols direkt eine Fehlermeldung ausgegeben werden. Anschließend wird in Zeile 38 ein neues Bytearray mit der benötigten Größe angelegt. Des Weiteren wird die Buffergröße ebenfalls im Symbol abgespeichert (Zeile 39). Dies wird für alle Symbole durchgeführt.
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Struct für das Lesen einer Variable (C\#)},label={lst:SymbolicRW}] {Code/SPS/SymbolicRW.cs}
+\ \\
+\end{minipage}
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Buffer erstellen (C\#)},label={lst:CreateBuffer}] {Code/SPS/CreateBuffer.cs}
+\ \\
+\end{minipage}
+
+\ \\
+Das Lesen der Symbole wird mit der Funktion texttt{Symbolic\_{}ReadMixEx()} (\autoref{lst:Read} Zeile 2) ausgeführt. Sollte dabei ein Fehler auftreten, so wird dieser in einem Popup-Fenster angezeigt und in das Log-File geschrieben. Sollte kein Fehler auftreten, so werden die gelesenen Daten von der Funktion texttt{evaluateData()} (Zeile 20) ausgewertet. Auch hier wird im Fehlerfall ein Popup-Fenster angezeigt. Diese Funktion wertet die gelesenen Daten nacheinander aus und speichert sie in den einzelnen Logging-Items. Bei der Datenauswertung werden der \texttt{ValueType} und der \texttt{SystemType} zur Bestimmung des Datentyps ausgewertet. Dadurch kann das Byte-Array aufbereitet werden. Hierzu stellt AGLink für jeden SIEMENS Datentyp Funktionen zur Verfügung. Anschließend wird noch überprüft, ob das Symbol auf Wertänderung geloggt werden soll; sollte dies der Fall sein, so wird das Flag \texttt{writeTableToSQL} gesetzt. Ist dieses Flag gesetzt, so wird die Logging-Tabelle in der SQL-Datenbank abgespeichert.
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Lesen der Symbole (C\#)},label={lst:Read}] {Code/SPS/Read.cs}
+\ \\
+\end{minipage}
+
+\subsubsection{SIEMENS-Variablen}
+Die RENA-Maschinen sind in Module unterteilt, dadurch werden die Maschinen besser konfigurierbar und können ideal dem Kundenwunsch angepasst werden. Es gibt verschiedene Kategorien in welche die Module eingeteilt werden können: die Material-Ein- und Ausgabestationen, das Handling und die Prozess-Becken. Das \textit{Quick-Dump-Rinse} (QDR)-Becken ist ein Modul der Kategorie Prozess-Becken, welches zur Reinigung der Wafer\footnote[1]{quadratische oder runde, dünne Silizium-Scheiben in der Mikroelektronik, Photovoltaik und Mikrosystemtechnik} benutzt wird. Auch die Software für die \ac{sps} ist nach diesen Modulen strukturiert.
+\ \\
+Variablen werden bei SIEMENS in Datenbankbausteinen gespeichert. Als Beispiel wird hier der Datenbankbaustein \glqq GDB\_{}MOD\_{}QDR\_{}1\_{}HMIn\grqq{} (\autoref{fig:GDB}) aufgeführt.  Dieser Datenbaustein wird für die Eingänge des QDR-Moduls verwendet, da es mehrere QDR-Module in einer RENA-Maschine geben kann, wird eine Struktur für die Eingänge und Ausgänge eines QDR-Moduls angelegt. AGLink benötigt für das Auslesen nun einen sogenannten Tagname. Dieser Tagname wird in der Maschinenkonfigurationsdatenbank abgelegt. Er setzt sich zusammen aus dem Präfix \glqq PLC.Blocks.\grqq{}, gefolgt vom Datenbausteinnamen sowie den nachfolgenden Strukturnamen bis hin zum Variablennamen. Als Beispiel: 
+\ \\
+PLC.Blocks.GDB\_{}MOD\_{}QDR\_{}1\_{}HWIn.stMod.stIB\_{}BathOverfull.bEnF ist der vollständige Tagname des ersten Bool-Werts im Beispieldatenbaustein. Für die Umwandlung der SIEMENS-Datentypen in .NET-Framework Datentypen und schließlich in PostgreSQL-Datentypen wird Maschinenkonfiguration (\autoref{fig:MachineConfigHoch}) verwendet.
+
+
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{Bilder/SPS/GDB.png}
+ \caption[Datenbaustein mit Beispielvariablen]{Datenbaustein mit Beispielvariablen}
+ \label{fig:GDB}
+\end{figure}
+
+\begin{figure}
+\centering
+ \includegraphics[height=\textheight-8pt]{Bilder/SPS/MachineConfigHoch.png}
+ \caption[Maschinenkonfiguration für ein QDR-Modul]{Maschinenkonfiguration für ein QDR-Modul}
+ \label{fig:MachineConfigHoch}
+\end{figure}
+
+\subsection{SQL-Kommunikation}
+Wie beim TCP-Logging wird auch hier dieselbe Datenbank PostgreSQL-Datenbank  verwendet. Allerdings kommt Dapper nicht zum Einsatz, da die Tabellen je nach Maschinenkonfiguration verschieden aufgebaut sind. Aus der Maschinenkonfiguration (\autoref{fig:MachineConfigHoch}) werden die Spalten \glqq VarID\grqq{}, \glqq TableName\grqq{} sowie \glqq DataType\grqq{} für das Erstellen der Tabellen verwendet. Um den SQL-Befehl zu erzeugen wird die Funktion \texttt{GetCreateTable\-String()} (\autoref{lst:CreateTable}) verwendet. Diese Funktion erhält als Übergabeparameter die LoggingTable, aus welcher der SQL-Befehl zusammengesetzt wird. Die Funktion \texttt{Get\-ColumnCreateString} (\autoref{lst:CreateColumn}), welche in Zeile 10 aufgerufen wird, ist für die Teilbefehl der Variablen verantwortlich. Hierbei wird für jedes LoggingItem die \glqq VarID\grqq{} als Spaltenname verwendet (Zeile 12). Zusätzlich wird zuvor der PostgreSQL-Datentyp ermittelt (Zeile 9). Des Weiteren dürfen alle Spalten, welche für Variablen vorgesehen sind, NULL sein. Sollte zukünftig eine Variable aus der Maschinenkonfiguration für das Logging entfallen, so kann diese einfach weiter mit NULL befüllt werden.
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Erstellen des CreateTable-Befehl (C\#)},label={lst:CreateTable}] {Code/SPS/CreateTable.cs}
+\ \\
+\end{minipage}
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Erstellen der CreateColumn-Befehls (C\#)},label={lst:CreateColumn}] {Code/SPS/CreateColumn.cs}
+\ \\
+\end{minipage}
+\ \\ 
+Das im Lasten-/Pflichtenheft aufgeführte Überprüfen der Tabelle wird von zwei Funktion übernommen. Die Überprüfung ob Tabelle überhaupt existiert führt die Funktion \texttt{CheckIfTableExist()} (\autoref{lst:CheckTable}) aus. Als erstes wird die Ergebnisvariable \glqq result\grqq{} initialisiert und auf den Errorwert -1 gesetzt. Anschließend wird eine neue \texttt{Npgsql\-Connection} erstellt (Zeile 9), welche in Zeile 13 geöffnet wird. Anschließend wird der SQL-Befehl (\autoref{lst:CheckTableSQL}) ausgeführt. Mit dem SELECT-Statement in Zeile 3 wird abgefragt, ob eine Tabelle existiert. Das SELECT EXISTS in Zeile 2 wandelt das Ergebnis in einen Integer-Wert um, da in Zeile 8 dieser Datentyp angegeben ist. Sollte eine Tabelle existieren, so wird in Zeile 15 eine 1 in die Ergebnisvariable gespeichert, ansonsten eine 0. Umschlossen wird das Öffnen und Ausführen des Befehls mit einem Try-Catch-Block (Zeile 11 und 17), um Fehler abzufangen. Sollte ein Fehler auftreten, so wird dieser in das Logging-File geschrieben und die Ergebnisvariable wird auf -1 gesetzt. Zum Schluss wird die Verbindung geschlossen (Zeile 25) und die Ergebnisvariable zurückgegeben (Zeile 27). 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Überprüfung der SQL-Tabelle (C\#)},label={lst:CheckTable}] {Code/SPS/CheckTable.cs}
+\ \\
+\end{minipage}
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Überprüfung der SQL-Tabelle (SQL)},label={lst:CheckTableSQL},language={SQL}] {Code/SPS/CheckTable.sql}
+\ \\
+\end{minipage}
+\ \\
+Mit einer ähnlichen Funktion werden die Spalten überprüft, allerdings wird hierbei zusätzlich der Datentyp überprüft. In Zeile 2 bis 4 in \autoref{lst:CheckColumn} wird getestet, ob in der Tabelle die Spalte existiert und in Zeile 8 bis 10 wird der Datentyp der Spalte zurückgegeben. Dieser wird anschließend mit dem geforderten Datentyp abgeglichen. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Überprüfung der SQL-Spalten (SQL)},label={lst:CheckColumn},language={SQL}] {Code/SPS/columnChecks.sql}
+\ \\
+\end{minipage}
+\ \\
+Um Daten in die Datenbank zu schreiben, wird die Funktion \texttt{WriteData()} (\autoref{lst:WriteData}) verwendet. Hierfür werden der SQL-INSERT-Befehl zusammengesetzt und die Daten als DynamicParameters (Zeile 12) übergeben. Zunächst wird der Anfang des INSERT-Befehls gespeichert (Zeile 14), dabei wird der Tabellenname übergeben. Anschließend werden zwei String-Builder initialisiert (Zeile 16,17). String-Builder werden für performante String-Manipulationen eingesetzt. Diese String-Builder können beispielsweise mit .Append weitere Strings anhängen, ohne dabei neuen Speicherplatz zu reservieren. In Zeile 19 bis 22 werden der aktuelle Zeitstempel und der \ac{utc}-Zeitstempel den Parametern und dem INSERT-Befehl angehängt. Danach wird jedes Logging-Item den Parametern und INSERT-Befehl hinzugefügt (Zeile 24 bis 29). In der Zeile 31 und 32 werden die Endklammern der Parameter und der Werte hinzugefügt, sowie das Semikolon für das Ende des INSERT-Befehls. Danach wird der gesamte Befehls-String zusammengesetzt (Zeile 34). Nach Öffnen der SQL-Verbindung (Zeile 37) wird mit dem Execute-Befehl der Insert-Befehl mit den Werten als Parameter ausgeführt (Zeile 39). Durch den Catch-Block (Zeile 41) werden Fehler abgefangen und direkt in die Logging-Datei des Service geschrieben (Zeile 44). Zuletzt wird die SQL-Verbindung geschlossen (Zeile 47). Dies wird nach dem Catch-Block durchgeführt, damit auch in einem Fehlerfall die Verbindung sicher geschlossen wird.
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Daten in Datenbank schreiben (C\#)},label={lst:WriteData}] {Code/SPS/WriteData.cs}
+\ \\
+\end{minipage}
+\ \\
+\subsection{HMI-Kommunikation}
+Die HMI-Kommunikation wird benutzt, um Informationen zwischen dem Service und der Visualisierung der Maschine auszutauschen. Aktuell benutzt wird nur die Kommunikationsrichtung \textit{Visualisierung zu Service}, allerdings wird die Richtung \textit{Service zu Visualisierung} ebenfalls eingebunden. Als Kommunikationstechnologie wird TCP eingesetzt, benutzt werden die Ports 1948 und 1949.
+\subsubsection{\textit{Visualisierung zu Service}}
+Dieser Kommunikationskanal mit dem Port 1948 wird benutzt, um den Service zu steuern. Es wird der gleiche TCP-Server verwendet wie bei dem TCP-Logging. Über Event-Types kann ein Telegramm identifiziert werden. Unterstützt wird in der aktuellen Version nur der Event \texttt{ReloadData}, dabei werden die MachineConfig neu eingelesen, alle SQL-Tabellen überprüft und gegebenenfalls verändert oder neu erstellt, sowie die Verbindungen zur SPS neu aufgebaut. Sollte der Event-Type nicht identifiziert werden können, so werden die empfangenen Daten in das Logging-File geschrieben (\autoref{lst:HMIReceived} in Zeile 28, 41 und 52). Die Switch-Case-Anweisung in Zeile 20 bis 31 kann einfach erweitert werden, sollten noch weitere Steuerungsmöglichkeiten für den Service hinzukommen. 
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Empfangene Daten von der Visualisierung auswerten (C\#)},label={lst:HMIReceived}] {Code/SPS/HMIReceived.cs}
+\ \\
+\end{minipage}
+\ \\
+\newpage
+\subsubsection{\textit{Service zu Visualisierung}}
+Aktuell wird diese Kommunikationsrichtung noch nicht verwendet, allerdings soll sie in Zukunft eingesetzt werden, um Fehlermeldungen des Services auf der Visualisierung anzuzeigen. Die Funktion \texttt{SendData()} (\autoref{lst:HMISend}) sendet den übergebenen String an die übergebene IP-Adresse über den Port 1949. Dafür wird ein neuer Socket erzeugt (Zeile 10), welcher in Zeile 13 mit der übergebenen IP-Adresse und dem Port verbunden wird. Anschließend wird der String unter Benutzung der Encoding-Klasse in ein Byte-Array umgewandelt (Zeile 15), hierbei wird die UTF-8-Kodierung verwendet. Anschließend wird das Byte-Array über den Socket gesendet (Zeile 17) und der Socket wieder geschlossen (Zeile 19). Durch den Try-Catch-Block (Zeile 8 und 22) werden Fehler erkannt und diese werden dann in das Log-File des Service geschrieben (Zeile 24).
+\ \\
+\begin{minipage}{\textwidth}
+\ \\
+\lstinputlisting[caption={Daten per TCP an Visualisierung senden (C\#)},label={lst:HMISend}] {Code/SPS/HMISend.cs}
+\ \\
+\end{minipage}
+\ \\
